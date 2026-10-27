@@ -31,8 +31,8 @@ class FeatureBuilder:
         # cumsum[:, k] = ยอดรวมของวัน index 0..k-1 ใช้คำนวณ rolling mean ได้ในครั้งเดียว
         self.cumsum = np.zeros((n_series, n_days + 1), np.float64)
         np.cumsum(np.nan_to_num(self.sales), axis=1, out=self.cumsum[:, 1:])
-        with np.errstate(invalid='ignore'):
-            self.regular_price = np.nanmax(self.price, axis=1)
+        # Running maximum uses only prices known up to each day.
+        self.regular_price = np.fmax.accumulate(self.price, axis=1)
 
         cal = calendar.iloc[:n_days]
         self.day = {
@@ -56,7 +56,7 @@ class FeatureBuilder:
 
         price = self.price[:, j]
         X['sell_price'] = price.ravel()
-        X['price_rel_regular'] = (price / self.regular_price[:, None]).ravel()
+        X['price_rel_regular'] = (price / self.regular_price[:, j]).ravel()
         X['price_change_7d'] = (price / self.price[:, j - 7] - 1).ravel()
 
         for lag in LAGS:
