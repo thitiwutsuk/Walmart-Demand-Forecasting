@@ -13,18 +13,20 @@
 
 ## การติดตั้ง Environment
 
-ต้องใช้ Python 3.11 และ RAM 16 GB ขึ้นไป (ข้อมูลแบบ long มีประมาณ 59 ล้านแถว ต้องลดขนาด dtype ก่อนใช้)
+ต้องใช้ Python 3.11 และ RAM 16 GB ขึ้นไป (ข้อมูลแบบ long มี 60 ล้านแถว คือ 30,490 อนุกรม × 1,969 วัน ต้องลดขนาด dtype ก่อนใช้)
 
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
+python3.11 -m venv .venv           # Windows: py -3.11 -m venv .venv
+source .venv/bin/activate          # Windows (PowerShell): .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m ipykernel install --user --name m5-forecasting --display-name "Python (m5-forecasting)"
 ```
 
 ใน VS Code ให้เลือก kernel **Python (m5-forecasting)** เมื่อเปิด notebook
 ไฟล์ CSV ต้นฉบับดาวน์โหลดได้จากหน้า Kaggle ด้านบน แล้ววางไว้ใน `data/raw/`
-รันเทสต์ด้วยคำสั่ง `pytest`
+รันเทสต์ด้วยคำสั่ง `pytest` เทสต์ที่ใช้ข้อมูลจริง (`test_data.py`, `test_metrics_reference.py`) จะข้ามเองถ้าไม่พบไฟล์ใน `data/raw/`
+ถ้าข้อมูลอยู่ที่อื่นให้ตั้ง `M5_RAW_DIR` เทสต์สองไฟล์นี้ใช้ RAM สูงสุดราว 4 GB
+ถ้า RAM ไม่พอ ตั้ง `M5_SERIES_STRIDE=7` ให้ `test_data.py` ตรวจเฉพาะทุกอนุกรมที่ 7 (ราว 2 GB) ส่วน `test_metrics_reference.py` ยังใช้ราว 3.6 GB
 
 ## โครงสร้างโฟลเดอร์
 
