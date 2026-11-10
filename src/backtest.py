@@ -22,9 +22,7 @@ STORE_TRAIN_DAYS = 730       # โมเดลรายสาขา: ข้อ�
 N_ROUNDS = 800               # จำนวนต้นไม้ของโมเดล boosting
 SEED = 42
 CACHE = PROCESSED / 'backtest'
-# CatBoost ตัดออกจากรอบนี้: รอบคัดเลือกแรก (1 fold) ได้ WRMSSE 1.007 แย่กว่า Seasonal naive (0.870)
-# โค้ดของ CatBoost ยังเก็บไว้ใน forecast() เผื่อรันซ้ำ
-MODEL_NAMES = ['LightGBM', 'LightGBM per store', 'Random Forest', 'XGBoost']
+MODEL_NAMES = ['LightGBM', 'LightGBM per store', 'Random Forest', 'XGBoost', 'CatBoost']
 
 
 def _predict_test(model, fb, end, rows=None):
