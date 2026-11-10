@@ -82,14 +82,31 @@ MODEL_SELECTION_METHOD.md   วิธีพยากรณ์ วัดผล �
 
 ### 2. Forecast: พยากรณ์ 28 วัน
 
-เปรียบเทียบ Baseline, LightGBM, XGBoost, CatBoost และ Random Forest ด้วย WRMSSE จาก backtest 3 รอบ
+เปรียบเทียบ Baseline, LightGBM, LightGBM รายสาขา (1 โมเดลต่อสาขา), XGBoost, CatBoost และ Random Forest ด้วย WRMSSE จาก backtest 3 รอบ
 รายละเอียดวิธีการและเกณฑ์การเลือกอยู่ใน [MODEL_SELECTION_METHOD.md](MODEL_SELECTION_METHOD.md)
+
+**ผลที่ได้:** เลือก LightGBM WRMSSE เฉลี่ย 0.658 แม่นกว่า baseline ที่ดีที่สุด (Seasonal naive 0.894) 26.4%
+CatBoost เทรนครบ 3 รอบแล้วแต่แย่กว่า baseline (0.910 ± 0.288)
+ทดลองปรับ bias และเฉลี่ยหลายโมเดล (ensemble) แยกต่างหากแล้วไม่ใช้ เพราะผลประหยัดเป็นเงินไม่ดีขึ้น (หัวข้อ 7 ของ [MODEL_SELECTION_METHOD.md](MODEL_SELECTION_METHOD.md))
+
+**การเทรนแบบแบ่ง batch:** 5 โมเดล × 3 รอบใช้เวลารวมราว 3 ชั่วโมง (CPU 16 core, RAM 16 GB) จึงเทรนทีละโมเดลจาก terminal ได้
+ผลของแต่ละรอบถูกบันทึกใน `data/processed/backtest/` ทันทีที่เสร็จ หยุดกลางทางแล้วรันต่อได้ และ notebook 02 อ่านผลจากไฟล์เหล่านี้
+
+```bash
+python -m src.backtest --list                  # ดูว่าโมเดลไหนรันเสร็จแล้วกี่รอบ
+python -m src.backtest "LightGBM"              # backtest 3 รอบของโมเดลนี้
+python -m src.backtest "LightGBM" --final      # เทรนถึง d_1941 แล้วพยากรณ์ d_1942–d_1969
+```
+
+โฟลเดอร์ `data/processed/` ไม่ถูกเก็บใน git ถ้าต้องการใช้ผลที่เทรนไว้แล้วต้องส่งไฟล์ใน `data/processed/backtest/` ให้กันเอง
 
 ### 3. Business impact: ผลกระทบคิดเป็นเงิน
 
 จำลองการสั่งของตามพยากรณ์ แล้วเทียบโมเดลที่เลือกกับ baseline:
 - ยอดขายที่เสียไปเพราะของไม่พอ (lost sales)
 - สต็อกส่วนเกินและต้นทุนการถือครอง (excess inventory)
+
+**ผลที่ได้:** ประหยัดประมาณ $180,000 ต่อ 28 วัน หรือ $2.35 ล้านต่อปี สำหรับ 10 สาขา ผลขึ้นกับสมมติฐานเรื่องต้นทุนของเกิน (ถ้า markdown/waste ถึง 20% ของมูลค่า ผลจะหมดไป)
 
 > dataset ไม่มีข้อมูลต้นทุนและสต็อกจริง จึงต้องระบุสมมติฐานทุกข้อให้ชัดเจน (เช่น carrying cost 25% ต่อปี)
 
