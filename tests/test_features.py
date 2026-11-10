@@ -146,6 +146,19 @@ def test_price_features_track_discounts_and_price_increases():
     np.testing.assert_allclose(change[days == 100], 12 / 8 - 1)   # ขึ้นราคา เทียบ d_93 (8)
 
 
+def test_rows_subset_matches_the_same_rows_of_the_full_build():
+    """โมเดลรายสาขาสร้าง feature เฉพาะบางแถว ผลต้องตรงกับแถวเดียวกันในตารางเต็ม"""
+    sales = random_sales(n_series=4, n_days=120)
+    builder = make_panel(sales)
+    full_X, full_y = builder.build(90, 100)
+    rows = [3, 1]
+    sub_X, sub_y = builder.build(90, 100, rows=rows)
+    m = 11
+    idx = np.concatenate([np.arange(r * m, (r + 1) * m) for r in rows])
+    pd.testing.assert_frame_equal(sub_X, full_X.iloc[idx].reset_index(drop=True))
+    np.testing.assert_array_equal(sub_y, full_y[idx])
+
+
 def test_rows_are_ordered_by_series_then_day_with_matching_ids_and_calendar():
     sales = random_sales(n_series=2, n_days=120)
     snap = np.zeros((2, 120))
