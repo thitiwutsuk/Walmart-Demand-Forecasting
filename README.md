@@ -117,6 +117,15 @@ python -m src.backtest "LightGBM" --final      # เทรนถึง d_1941 �
 - KPI: Out-of-Stock rate, waste, inventory turnover, WRMSSE
 - Roadmap: Pilot → Scale → MLOps
 
+## Dashboard สำหรับผู้บริหาร
+
+```bash
+streamlit run app.py
+```
+
+เปิดในเบราว์เซอร์ได้ที่ http://localhost:8501 ครั้งแรกจะสร้าง `data/processed/dashboard_daily.parquet` (ใช้เวลาประมาณ 10 วินาที)
+ส่วนพยากรณ์ 28 วันและเงินที่ประหยัดได้จะแสดงหลังรัน notebook 02 และ 03
+
 ## License
 
 โค้ดใช้ MIT License (ดู [LICENSE](LICENSE)) ส่วนข้อมูล M5 อยู่ภายใต้กติกาการแข่งขันของ Kaggle
