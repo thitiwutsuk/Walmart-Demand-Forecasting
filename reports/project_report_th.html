@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>รายงานโครงการพยากรณ์ยอดขาย Walmart (M5 Forecasting)</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Thonburi", "Helvetica Neue", Arial, sans-serif;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #222;
+    margin: 0;
+  }
+  h1, h2, h3 { font-family: "Thonburi", sans-serif; color: #1a3c5e; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  h2 {
+    font-size: 16px;
+    margin-top: 28px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #1a3c5e;
+  }
+  h3 { font-size: 13px; margin-top: 18px; color: #2c5d87; }
+  .subtitle { font-size: 13px; color: #555; margin-bottom: 2px; }
+  .report-header {
+    padding-bottom: 14px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  .report-header h1 { font-size: 20px; margin: 0 0 4px 0; }
+  h2, h3, h4 { page-break-after: avoid; break-after: avoid-page; }
+  h2 + p, h2 + table, h3 + p, h3 + table, h3 + ul, h3 + ol, h3 + figure {
+    page-break-before: avoid; break-before: avoid-page;
+  }
+  p, li { orphans: 3; widows: 3; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 16px 0; font-size: 10.8px; }
+  th, td { border: 1px solid #ccc; padding: 5px 8px; text-align: left; }
+  th { background: #eef3f8; color: #1a3c5e; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .num { text-align: right; }
+  .highlight-row td { background: #e3f0e0 !important; font-weight: bold; }
+  figure { margin: 12px 0 18px 0; text-align: center; page-break-inside: avoid; }
+  figure img { max-width: 100%; border: 1px solid #ddd; border-radius: 3px; }
+  figcaption { font-size: 10px; color: #666; margin-top: 4px; }
+  .callout {
+    border: 1px solid #dce2e8;
+    border-radius: 6px;
+    background: #f8f9fb;
+    padding: 12px 16px 14px 16px;
+    margin: 14px 0;
+    font-size: 11px;
+    page-break-inside: avoid;
+  }
+  .callout .callout-label {
+    display: block;
+    font-size: 9.5px;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: #1a3c5e;
+    width: fit-content;
+    padding: 2px 9px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .callout.alt { background: #fbf8f1; border-color: #e6dcc3; }
+  .callout.alt .callout-label { background: #8a6d1f; }
+  .callout p:first-of-type { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  .grid2 { display: flex; gap: 14px; }
+  .grid2 > div { flex: 1; }
+  .section-break { page-break-before: always; }
+  .keep-together { page-break-inside: avoid; break-inside: avoid-page; }
+  .small { font-size: 10px; color: #777; }
+  .tag {
+    display: inline-block;
+    background: #1a3c5e;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    margin-right: 6px;
+  }
+  .next-steps { margin: 10px 0; padding: 0; list-style: none; }
+  .next-steps li {
+    position: relative;
+    padding: 8px 10px 8px 36px;
+    margin-bottom: 8px;
+    background: #f8f9fb;
+    border: 1px solid #e2e6ea;
+    border-radius: 5px;
+  }
+  .next-steps li .n {
+    position: absolute;
+    left: 8px;
+    top: 7px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    background: #1a3c5e;
+    border-radius: 50%;
+  }
+  .footer-note { margin-top: 30px; font-size: 10px; color: #888; border-top: 1px solid #ddd; padding-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="tag">M5 Forecasting Accuracy</div>
+  <h1>รายงานโครงการพยากรณ์ยอดขายสินค้า Walmart</h1>
+  <div class="subtitle">สรุปข้อมูล การเตรียมข้อมูล การวิเคราะห์เชิงลึก และผลการสร้างแบบจำลอง (Machine Learning)</div>
+</div>
+
+<h2>1. ภาพรวมโครงการ</h2>
+<p><b>โจทย์:</b> พยากรณ์ยอดขายสินค้าของ Walmart ล่วงหน้า 28 วัน โดยพยากรณ์ในระดับ <b>สินค้า × สาขา</b>
+(รวม 30,490 รายการ) เพื่อใช้ช่วยตัดสินใจเรื่องการสั่งสินค้า — ถ้าพยากรณ์ต่ำเกินไปจะทำให้สินค้าขาดสต็อกและเสียโอกาสขาย
+ถ้าพยากรณ์สูงเกินไปจะทำให้สินค้าล้นสต็อก เสียพื้นที่เก็บและต้นทุนจม การพยากรณ์ที่แม่นยำขึ้นจึงแปลเป็นมูลค่าทางธุรกิจได้โดยตรง</p>
+
+<p><b>ขอบเขตข้อมูล:</b> ใช้ข้อมูลยอดขายจริงของสินค้า 3,049 รายการ ใน 10 สาขา (California, Texas, Wisconsin)
+ย้อนหลังกว่า 5 ปี (29 มกราคม 2011 – 22 พฤษภาคม 2016) พร้อมข้อมูลราคาขายและปฏิทินเทศกาล/วันช่วยเหลือค่าอาหาร
+ทำให้มองเห็นทั้งพฤติกรรมระยะยาวและปัจจัยระยะสั้นที่กระทบยอดขาย</p>
+
+<p><b>แนวทางการทำงาน:</b> โครงการนี้แบ่งเป็น 4 ขั้นตอนต่อเนื่องกัน (1) เตรียมข้อมูลดิบให้อยู่ในรูปแบบที่วิเคราะห์ได้
+(2) สำรวจข้อมูลเพื่อหาปัจจัยที่ขับเคลื่อนยอดขาย (3) แปลงปัจจัยเหล่านั้นเป็นตัวแปรสำหรับโมเดล และ (4) เทรนและเปรียบเทียบ
+แบบจำลองหลายแบบ แล้วทดสอบความแม่นยำย้อนหลังก่อนนำไปพยากรณ์อนาคตจริง รายงานฉบับนี้เรียงตามลำดับขั้นตอนดังกล่าว</p>
+
+<h2>2. ชุดข้อมูล (Dataset)</h2>
+<div class="keep-together">
+<p>ข้อมูลมาจาก Walmart ครอบคลุมสินค้า 3,049 รายการ ใน 10 สาขา (3 รัฐ: California, Texas, Wisconsin)
+ช่วงเวลา 29 มกราคม 2011 – 22 พฤษภาคม 2016 (รวม 1,969 วัน) ประกอบด้วยไฟล์ดิบ (raw data) ดังนี้</p>
+
+<table>
+<tr><th>ไฟล์</th><th>เนื้อหา</th><th class="num">จำนวนแถว</th><th class="num">จำนวนคอลัมน์</th></tr>
+<tr>
+  <td><code>sales_train_evaluation.csv</code></td>
+  <td>ยอดขายรายวัน (หน่วย: ชิ้น) ของสินค้า × สาขา ตั้งแต่ d_1 ถึง d_1941 — ไฟล์หลักที่ใช้เทรนโมเดล</td>
+  <td class="num">30,490</td><td class="num">1,947</td>
+</tr>
+<tr>
+  <td><code>sales_train_validation.csv</code></td>
+  <td>ยอดขายชุดเดิมแต่สั้นกว่า (ถึง d_1913) ใช้สำหรับตรวจสอบผลช่วงแรกของการแข่งขัน</td>
+  <td class="num">30,490</td><td class="num">1,919</td>
+</tr>
+<tr>
+  <td><code>calendar.csv</code></td>
+  <td>ปฏิทิน: วันที่, วันในสัปดาห์, เดือน, เทศกาล/วันหยุด (event), วัน SNAP ของแต่ละรัฐ</td>
+  <td class="num">1,969</td><td class="num">14</td>
+</tr>
+<tr>
+  <td><code>sell_prices.csv</code></td>
+  <td>ราคาขายของสินค้าแต่ละรายการในแต่ละสาขา แยกตามสัปดาห์ (wm_yr_wk)</td>
+  <td class="num">6,841,121</td><td class="num">4</td>
+</tr>
+<tr>
+  <td><code>sample_submission.csv</code></td>
+  <td>รูปแบบไฟล์คำตอบตัวอย่าง (ใช้อ้างอิงรูปแบบการส่งผลพยากรณ์)</td>
+  <td class="num">60,980</td><td class="num">29</td>
+</tr>
+</table>
+
+<p class="small">หมายเหตุ: SNAP คือโครงการช่วยเหลือค่าอาหารของรัฐบาลสหรัฐฯ (คล้ายคูปองอาหาร) แต่ละรัฐมีวัน SNAP ของตัวเอง ซึ่งมักทำให้ยอดขายสูงกว่าปกติ</p>
+</div>
+
+<h2>3. Data Preparation — สิ่งที่ทำไปแล้ว</h2>
+<p>ข้อมูลดิบทั้ง 3 ไฟล์ (sales, calendar, prices) มีรูปแบบต่างกันและต้องเชื่อมกันก่อนใช้งาน
+จึงเขียนสคริปต์ <code>src/data.py</code> เพื่อแปลงข้อมูลเป็นตาราง <b>long format</b>
+(1 แถว = สินค้า 1 รายการ ในสาขา 1 แห่ง ใน 1 วัน) ที่รวมทุกอย่างไว้ในที่เดียว ได้แก่</p>
+<ul>
+  <li><b>รวมยอดขาย + ราคา + ปฏิทิน</b> เข้าด้วยกันตามสินค้า สาขา และวันที่ (ราคาต้องจับคู่ตามสัปดาห์ของปฏิทิน เพราะไฟล์ราคาเก็บเป็นรายสัปดาห์)</li>
+  <li><b>เติมค่า SNAP</b> ให้แต่ละแถวตามรัฐที่สาขานั้นตั้งอยู่</li>
+  <li><b>ทำเครื่องหมายวันที่สินค้ายังไม่วางขาย</b> (ราคาเป็นค่าว่าง) เพื่อไม่ให้ยอดขาย 0 ช่วงนั้นถูกนับเป็น "ขายไม่ได้" ทั้งที่จริงคือยังไม่มีสินค้าวางขาย</li>
+  <li><b>บันทึกเป็นไฟล์ Parquet</b> (<code>data/processed/m5_long.parquet</code>, ~60 ล้านแถว) เพื่อให้โหลดและประมวลผลได้เร็วกว่าอ่าน CSV ใหม่ทุกครั้ง</li>
+</ul>
+<p>ตารางนี้เป็นฐานข้อมูลเดียวที่ใช้ต่อทั้งขั้นตอนวิเคราะห์ข้อมูล (EDA) และขั้นตอนสร้าง feature สำหรับโมเดล</p>
+
+<div class="section-break"></div>
+<h2>4. Data Insight — สิ่งที่พบจากข้อมูลดิบ</h2>
+<p>ก่อนสร้างโมเดล ได้วิเคราะห์ข้อมูลดิบเพื่อหาปัจจัยที่ส่งผลต่อยอดขาย โดยไล่จากภาพรวมทั้งบริษัท ลงไปจนถึงสินค้ารายตัว</p>
+
+<h3>4.1 ยอดขายรวมทั้งบริษัท</h3>
+<figure>
+  <img src="figures/01_1_total_sales.png">
+  <figcaption>ยอดขายรวมรายวัน ทั้ง 10 สาขา (เส้นเทา = ยอดรายวัน, เส้นน้ำเงิน = ค่าเฉลี่ยเคลื่อนที่ 28 วัน)</figcaption>
+</figure>
+<ul>
+  <li>ยอดขายมี <b>แนวโน้มเติบโตต่อเนื่อง</b> ตลอดช่วงเวลาที่มีข้อมูล</li>
+  <li>มี <b>รูปแบบซ้ำรายสัปดาห์</b> ชัดเจน (เห็นเป็นฟันเลื่อยในกราฟ)</li>
+  <li>ยอดขายตกเป็นศูนย์ปีละ 1 ครั้ง ตรงกับ <b>วันคริสต์มาส</b> ที่ร้านปิด</li>
+</ul>
+
+<h3>4.2 แยกตามพื้นที่ (รัฐ → สาขา)</h3>
+<figure>
+  <img src="figures/01_2_by_location.png">
+  <figcaption>ยอดขายแยกตามรัฐ และสัดส่วนรายได้ตามรัฐ/สาขา (ช่วง 365 วันล่าสุด)</figcaption>
+</figure>
+<p>California เป็นรัฐที่มียอดขายมากที่สุด (มี 4 สาขา) ขณะที่ Texas และ Wisconsin มีรัฐละ 3 สาขา
+ขนาดของแต่ละสาขาต่างกันมากแม้อยู่ในรัฐเดียวกัน จึงควรพยากรณ์และวางแผนแยกรายสาขา ไม่ใช้นโยบายเดียวกันทุกที่</p>
+
+<h3>4.3 แยกตามหมวดสินค้า</h3>
+<figure>
+  <img src="figures/01_3_by_product.png">
+  <figcaption>ยอดขายและสัดส่วนรายได้แยกตามหมวดสินค้า (FOODS, HOUSEHOLD, HOBBIES) และแผนกย่อย</figcaption>
+</figure>
+<p>สินค้าหมวด <b>FOODS</b> มีสัดส่วนยอดขายสูงสุด รองลงมาคือ HOUSEHOLD และ HOBBIES ตามลำดับ
+แต่ละหมวดมีพฤติกรรมการขายต่างกัน</p>
+
+<h3>4.4 แยกตามกลุ่มสินค้า: ขายเร็ว vs ขายช้า</h3>
+<figure>
+  <img src="figures/01_5_item_segments.png">
+  <figcaption>สัดส่วนสินค้าที่ขายเร็ว / ขายปานกลาง / ขายช้า (วัดจากสัดส่วนวันที่ขายได้ 0 ชิ้น)</figcaption>
+</figure>
+<p>สินค้าจำนวนมากมียอดขาย <b>เป็น 0 บ่อยครั้ง</b> (ขายช้า/ขายไม่สม่ำเสมอ) ทำให้การพยากรณ์ต้องรับมือกับข้อมูลที่เป็นศูนย์จำนวนมาก
+ซึ่งส่งผลต่อการเลือกวิธีวัดผลและชนิดของโมเดลในขั้นถัดไป</p>
+
+<div class="callout">
+<span class="callout-label">สรุป Insight ที่สำคัญ</span>
+ยอดขายขึ้นกับ (1) แนวโน้มระยะยาวและฤดูกาลรายสัปดาห์ (2) สาขา/พื้นที่ (3) หมวดสินค้า
+(4) วันในสัปดาห์ เทศกาล และวัน SNAP (5) การเปลี่ยนแปลงราคา และ (6) สินค้าจำนวนมากมียอดขายเป็นศูนย์บ่อย
+— ปัจจัยทั้งหมดนี้ถูกนำไปใช้ออกแบบ feature ของโมเดลในขั้นตอนถัดไป
+</div>
+
+<div class="section-break"></div>
+<h2>5. หลักการทำ Feature Engineering</h2>
+<div class="keep-together">
+<p>โมเดลไม่สามารถอ่าน "ตารางยอดขาย" ได้โดยตรง ต้องแปลงข้อมูลดิบให้เป็นตัวแปร (feature) ที่บอกสถานการณ์ของสินค้าแต่ละรายการในแต่ละวัน
+โดยออกแบบ feature ทุกตัวให้สอดคล้องกับ insight ที่พบในขั้นตอนก่อนหน้า</p>
+
+<table>
+<tr><th>กลุ่ม Feature</th><th>ตัวอย่าง</th><th>ความหมาย</th><th>มาจาก Insight</th></tr>
+<tr><td>ยอดขายในอดีต (lag)</td><td><code>lag_28 ... lag_56</code></td><td>ยอดขายเมื่อ 28–56 วันก่อน</td><td>รูปแบบซ้ำรายสัปดาห์</td></tr>
+<tr><td>ค่าเฉลี่ยเคลื่อนที่ (rolling)</td><td><code>rmean_7, rmean_28, rmean_56</code></td><td>ยอดขายเฉลี่ย 7/28/56 วัน (นับถอยหลังจาก 28 วันก่อน)</td><td>ระดับยอดขายปกติและแนวโน้ม</td></tr>
+<tr><td>ราคา</td><td><code>sell_price, price_rel_regular, price_change_7d</code></td><td>ราคาปัจจุบัน / เทียบราคาปกติ / การเปลี่ยนแปลงราคารายสัปดาห์</td><td>ลดราคาแล้วขายดีขึ้น</td></tr>
+<tr><td>ปฏิทิน</td><td><code>wday, month, mday</code></td><td>วันในสัปดาห์ เดือน วันที่</td><td>เสาร์-อาทิตย์ขายดีกว่า</td></tr>
+<tr><td>Event / SNAP</td><td><code>event_name_1, event_type_1, snap</code></td><td>เทศกาล / วันที่เป็นวัน SNAP ของรัฐนั้น</td><td>ยอดขายเปลี่ยนในวันเทศกาลและวัน SNAP</td></tr>
+<tr><td>รหัสสินค้า/สถานที่</td><td><code>item_id, dept_id, cat_id, store_id, state_id</code></td><td>สินค้าอะไร อยู่สาขาไหน</td><td>แต่ละสาขาและหมวดขายต่างกัน</td></tr>
+</table>
+</div>
+
+<h3>5.1 ทำไม Lag ต้องเริ่มที่ 28 วัน (Direct Forecasting)</h3>
+<p>เป้าหมายคือพยากรณ์ล่วงหน้า 28 วัน <b>พร้อมกันในครั้งเดียว</b> ถ้าใช้ยอดขายของ "เมื่อวาน" เป็น feature
+จะพยากรณ์ได้แค่วันแรกเท่านั้น เพราะวันที่ 2–28 ยังไม่มีข้อมูลยอดขายของวันก่อนหน้าจริง ๆ
+การใช้ข้อมูลย้อนหลังที่เก่ากว่า 28 วันทำให้ทุกวันในช่วงพยากรณ์มี feature ครบ วิธีนี้เรียกว่า
+<b>direct forecasting</b> ข้อดีคือ error จากการพยากรณ์วันก่อนหน้าจะไม่สะสมไปยังวันถัดไป</p>
+
+<div class="keep-together">
+<h3>5.2 ข้อสมมติและข้อจำกัดของข้อมูล</h3>
+<ul>
+  <li><b>สมมติฐานเรื่องราคา:</b> การพยากรณ์ใช้ราคาล่วงหน้าของแต่ละวันในช่วง 28 วัน ซึ่งเป็นข้อมูลที่มีอยู่ใน dataset อยู่แล้ว (สมมติว่าทราบแผนราคาล่วงหน้า)</li>
+  <li><b>ไม่มีข้อมูลสต็อก:</b> บางช่วงยอดขายเป็น 0 ติดต่อกันหลายวันทั้งที่ปกติขายได้ อาจเกิดจากสินค้าหมดสต็อก แต่ข้อมูลไม่มีตัวแปรสต็อกให้ยืนยัน (censored demand) ซึ่งเป็นข้อจำกัดของโมเดล</li>
+</ul>
+
+<figure>
+  <img src="figures/02_2_feature_correlation.png" style="max-width:55%;">
+  <figcaption>ความสัมพันธ์ (Spearman correlation) ของแต่ละ feature กับยอดขายจริง — feature ด้านยอดขายในอดีต (rolling mean, lag) สัมพันธ์สูงสุด</figcaption>
+</figure>
+</div>
+
+<div class="section-break"></div>
+<h2>6. การทำ Modeling</h2>
+
+<h3>6.1 วิธีวัดผล: WRMSSE</h3>
+<p>การพยากรณ์ยอดขายมีความท้าทายเฉพาะตัวที่ทำให้ตัวชี้วัด error แบบธรรมดา (เช่น RMSE) ไม่เหมาะสมนัก
+จึงใช้ตัวชี้วัดชื่อ <b>WRMSSE</b> (Weighted Root Mean Squared Scaled Error) ซึ่งออกแบบมาเพื่อแก้ปัญหา 3 เรื่องนี้โดยเฉพาะ
+(ค่ายิ่งต่ำยิ่งดี):</p>
+<ol>
+  <li><b>สินค้าแต่ละชิ้นมี "สเกล" ยอดขายต่างกันมาก</b> — สินค้าขายเร็วอาจขายหลักร้อยชิ้นต่อวัน ขณะที่สินค้าขายช้าขายได้ไม่กี่ชิ้น
+  ถ้าวัด error เป็นตัวเลขดิบตรง ๆ สินค้าที่ขายเยอะจะดูเหมือน "ผิดพลาดมาก" เสมอทั้งที่จริงพยากรณ์แม่นมาก
+  จึงต้อง <b>ปรับสเกล error ของแต่ละสินค้าด้วยความผันผวนของสินค้านั้นเอง</b> (เทียบกับวิธีพยากรณ์อย่างง่ายที่สุดของสินค้านั้น) ทำให้เปรียบเทียบความแม่นยำข้ามสินค้าที่ขายเร็ว-ช้าต่างกันได้อย่างเป็นธรรม</li>
+  <li><b>สินค้าแต่ละชิ้นมีความสำคัญทางธุรกิจไม่เท่ากัน</b> — ถ้าพยากรณ์สินค้าที่สร้างรายได้สูงผิดพลาด ความเสียหายทางธุรกิจจะมากกว่าพยากรณ์สินค้าที่ขายน้อยผิด
+  จึงต้อง <b>ถ่วงน้ำหนักคะแนนตามสัดส่วนรายได้</b> ของสินค้านั้น เพื่อให้ตัวชี้วัดสะท้อนผลกระทบทางธุรกิจจริง ไม่ใช่แค่ความแม่นยำทางสถิติ</li>
+  <li><b>ผู้ใช้งานต้องการความแม่นยำในหลายมุมมองพร้อมกัน</b> — ผู้บริหารอาจสนใจยอดรวมทั้งบริษัท ขณะที่ผู้ดูแลสต็อกต้องการความแม่นยำรายสินค้าต่อสาขา
+  จึง <b>วัดผลในหลายระดับของลำดับชั้นข้อมูล</b> (ยอดรวม → รัฐ → สาขา → หมวด → ... → สินค้า×สาขา) แล้วนำคะแนนทุกระดับมาเฉลี่ยรวมกัน เพื่อให้มั่นใจว่าโมเดลแม่นทั้งภาพกว้างและภาพย่อย</li>
+</ol>
+
+<h3>6.2 วิธีทดสอบ: Backtest</h3>
+<p>จำลองสถานการณ์ย้อนหลัง โดยเทรนโมเดลด้วยข้อมูลถึงวันหนึ่ง แล้วพยากรณ์ 28 วันถัดไปซึ่งรู้คำตอบจริงอยู่แล้ว เพื่อเปรียบเทียบกับยอดขายจริง
+<b>ห้ามสุ่มแบ่งข้อมูล</b> เพราะจะกลายเป็นใช้ข้อมูลอนาคตมาทายอดีต</p>
+<figure>
+  <img src="figures/02_1_backtest_design.png">
+  <figcaption>โครงสร้างการทดสอบ: เทรนด้วยข้อมูล 365 วันล่าสุด แล้วพยากรณ์ 28 วันถัดไป</figcaption>
+</figure>
+
+<h3>6.3 โมเดลที่ใช้เปรียบเทียบ</h3>
+<div class="keep-together">
+<p>ใช้โมเดลตระกูลต้นไม้ตัดสินใจ (tree-based) เป็น <b>global model</b> เดียวที่เรียนรู้จากสินค้าทุกรายการพร้อมกัน
+(ไม่แยกเทรนทีละสินค้า เพราะสินค้าส่วนใหญ่ขายช้า ข้อมูลจะไม่พอถ้าแยกโมเดล)</p>
+<table>
+<tr><th>โมเดล</th><th>หลักการ</th><th>เหตุผลที่เลือก</th></tr>
+<tr><td><b>LightGBM</b></td><td>Gradient boosting: สร้างต้นไม้ทีละต้น แต่ละต้นแก้ error ของต้นก่อนหน้า</td><td>เร็วที่สุดเมื่อข้อมูลมีหลายล้านแถว</td></tr>
+<tr><td><b>XGBoost</b></td><td>Gradient boosting เช่นกัน แต่วิธีสร้างต้นไม้ต่างจาก LightGBM</td><td>แม่นและเสถียร ใช้เทียบกับ LightGBM</td></tr>
+<tr><td><b>CatBoost</b></td><td>Gradient boosting ที่จัดการตัวแปรประเภทหมวดหมู่ (categorical) ได้เอง</td><td>ไม่ต้องแปลงรหัสสินค้า/สาขาเอง</td></tr>
+<tr><td><b>Random Forest</b></td><td>สร้างต้นไม้หลายต้นอย่างอิสระแล้วเฉลี่ยผลลัพธ์</td><td>เข้าใจง่าย ใช้เทียบฝั่ง bagging</td></tr>
+</table>
+<p>โมเดลตระกูล boosting ใช้ <b>Tweedie loss</b> ซึ่งเหมาะกับยอดขายที่มีค่า 0 บ่อยครั้ง (ตามที่พบใน insight ข้อ 4.4)
+และเปรียบเทียบกับวิธี baseline 3 แบบ ได้แก่ Naive, Seasonal naive และ Mean 28 วัน เพื่อตรวจสอบว่าโมเดล ML คุ้มค่าที่จะใช้จริงหรือไม่</p>
+</div>
+
+<h3>6.4 ผลการเปรียบเทียบโมเดล</h3>
+<div class="keep-together">
+<p>ผลจาก backtest 1 รอบ (เทรนด้วยข้อมูลถึง d_1913 แล้ววัดผลกับ d_1914–d_1941) เรียงจาก WRMSSE ต่ำสุด (ดีที่สุด) ไปสูงสุด:</p>
+
+<table>
+<tr>
+  <th>วิธี</th><th class="num">WRMSSE (รวม)</th><th class="num">FOODS</th><th class="num">HOUSEHOLD</th>
+  <th class="num">HOBBIES</th><th class="num">Bias (%)</th><th class="num">เวลาเทรน (นาที)</th>
+</tr>
+<tr class="highlight-row"><td><b>LightGBM</b> ★ เลือกใช้</td><td class="num">0.681</td><td class="num">0.730</td><td class="num">0.583</td><td class="num">0.739</td><td class="num">-6.9</td><td class="num">21.4</td></tr>
+<tr><td>XGBoost</td><td class="num">0.705</td><td class="num">0.743</td><td class="num">0.614</td><td class="num">0.780</td><td class="num">-7.0</td><td class="num">8.5</td></tr>
+<tr><td>Random Forest</td><td class="num">0.711</td><td class="num">0.751</td><td class="num">0.682</td><td class="num">0.691</td><td class="num">-4.3</td><td class="num">1.4</td></tr>
+<tr><td>Seasonal naive (baseline)</td><td class="num">0.870</td><td class="num">0.954</td><td class="num">0.760</td><td class="num">0.806</td><td class="num">-7.4</td><td class="num">~0</td></tr>
+<tr><td>CatBoost</td><td class="num">1.007</td><td class="num">1.021</td><td class="num">0.963</td><td class="num">1.015</td><td class="num">-10.2</td><td class="num">20.8</td></tr>
+<tr><td>Mean 28d (baseline)</td><td class="num">1.082</td><td class="num">1.116</td><td class="num">1.068</td><td class="num">0.941</td><td class="num">-3.9</td><td class="num">~0</td></tr>
+<tr><td>Naive (baseline)</td><td class="num">1.464</td><td class="num">1.388</td><td class="num">1.703</td><td class="num">1.275</td><td class="num">+13.2</td><td class="num">~0</td></tr>
+</table>
+<p class="small">WRMSSE: ยิ่งต่ำยิ่งดี &nbsp;|&nbsp; Bias: ลบ = พยากรณ์ต่ำกว่าจริง (เสี่ยงของขาด), บวก = พยากรณ์สูงกว่าจริง (เสี่ยงของล้น)</p>
+</div>
+
+<div class="callout">
+<span class="callout-label">สรุปการเลือกโมเดล</span>
+<b>LightGBM</b> ให้ WRMSSE ต่ำที่สุด (0.681) และแม่นกว่า baseline ที่ดีที่สุด (Seasonal naive, 0.870) อยู่
+<b>21.7%</b> จึงเลือกใช้ LightGBM เป็นโมเดลหลัก โมเดลทุกตัวมี bias ติดลบเล็กน้อย (พยากรณ์ต่ำกว่าจริงเล็กน้อย)
+ยกเว้น Naive ซึ่งพยากรณ์สูงเกินจริงมาก
+</div>
+
+<figure>
+  <img src="figures/02_6_model_comparison.png">
+  <figcaption>เปรียบเทียบ WRMSSE ของทุกวิธี (ซ้าย) และผลตามรอบ backtest (ขวา)</figcaption>
+</figure>
+
+<figure>
+  <img src="figures/02_6_by_level.png">
+  <figcaption>WRMSSE แยกตาม 12 ระดับของลำดับชั้นข้อมูล (ยอดรวมบริษัท → รายสินค้า×สาขา) เทียบ LightGBM กับ baseline</figcaption>
+</figure>
+
+<figure>
+  <img src="figures/02_6_actual_vs_forecast_total.png">
+  <figcaption>ยอดขายจริงเทียบกับค่าพยากรณ์ของ LightGBM และ baseline ในช่วง backtest (ภาพรวมและแยกตามหมวด)</figcaption>
+</figure>
+
+<h3>6.5 ปัจจัยที่มีผลต่อการพยากรณ์มากที่สุด (SHAP)</h3>
+<figure>
+  <img src="figures/02_7_shap.png" style="max-width:75%;">
+  <figcaption>SHAP summary plot ของ LightGBM — เรียง feature จากสำคัญมากไปน้อย สีแดง = ค่า feature สูง, สีน้ำเงิน = ค่าต่ำ</figcaption>
+</figure>
+
+<h3>6.6 จำนวนรอบที่รันไปแล้ว</h3>
+<div class="callout">
+<span class="callout-label">สถานะปัจจุบัน</span>
+รัน <b>backtest ไปแล้ว 1 รอบ</b> (เทรนถึงวัน d_1913 ทดสอบกับ d_1914–d_1941) เพื่อลดเวลาและทรัพยากรที่ใช้รัน
+ผลจากรอบเดียวนี้ยังไม่สามารถยืนยันความสม่ำเสมอของโมเดลในช่วงเวลาอื่นได้ (ควรเพิ่มจำนวนรอบ backtest ในอนาคตเพื่อความแม่นยำของการประเมิน)<br><br>
+หลังจากเลือกโมเดลที่ดีที่สุดแล้ว ได้ <b>เทรนโมเดลจริงอีก 1 ครั้ง</b> โดยใช้ข้อมูลทั้งหมดถึงวันสุดท้าย (d_1941)
+เพื่อพยากรณ์ยอดขาย 28 วันข้างหน้าจริง (23 พฤษภาคม – 19 มิถุนายน 2016) ซึ่งเป็นช่วงเวลาที่ยังไม่มีคำตอบจริงให้ตรวจสอบ
+</div>
+
+<div class="section-break"></div>
+<h2>7. ขั้นตอนถัดไป (Next Steps)</h2>
+<p>ผลลัพธ์ในรายงานฉบับนี้เป็นเพียงจุดเริ่มต้น ขั้นตอนถัดไปที่วางแผนไว้เพื่อทำให้ผลงานนำไปใช้ตัดสินใจทางธุรกิจได้จริง มีดังนี้</p>
+<table>
+<tr><th style="width:4%" class="num">#</th><th style="width:26%">ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr>
+  <td class="num">1</td>
+  <td><b>แปลผลการพยากรณ์เป็นมูลค่าทางธุรกิจ</b></td>
+  <td>ประเมินว่าความแม่นยำที่เพิ่มขึ้นจากโมเดลช่วยลดต้นทุนด้านสต็อกได้เท่าไร และบริหารสต็อกแยกตามกลุ่มสินค้าจะช่วยประหยัดเพิ่มได้อีกหรือไม่</td>
+</tr>
+<tr>
+  <td class="num">2</td>
+  <td><b>ตรวจหาสินค้าที่น่าจะขาดสต็อก</b></td>
+  <td>ค้นหาช่วงเวลาที่สินค้าซึ่งปกติขายดีจู่ ๆ มียอดขายเป็นศูนย์ติดต่อกันหลายวันทั้งที่ยังวางขายอยู่ แล้วประเมินว่าความผิดปกตินั้นเกิดขึ้นเองตามธรรมชาติได้ยากเพียงใด เพื่อแยกแยะว่าน่าจะเกิดจากของหมดสต็อกมากกว่าความต้องการที่ลดลงจริง</td>
+</tr>
+<tr>
+  <td class="num">3</td>
+  <td><b>จัดกลุ่มสินค้าเชิงกลยุทธ์</b></td>
+  <td>แบ่งสินค้าตามความสำคัญทางรายได้ และความยากง่ายในการพยากรณ์ของแต่ละรายการ เพื่อกำหนดแนวทางบริหารสต็อกและความถี่ในการตรวจสอบที่เหมาะกับแต่ละกลุ่มแตกต่างกัน</td>
+</tr>
+<tr>
+  <td class="num">4</td>
+  <td><b>วิเคราะห์ผลของเทศกาลและวันช่วยเหลือค่าอาหารให้ละเอียดขึ้น</b></td>
+  <td>สรุปว่าช่วงเวลาใด หมวดสินค้าใด และพื้นที่ใดที่ยอดขายเพิ่มขึ้นชัดเจน พร้อมระยะเวลาที่ยอดขายเริ่มขยับก่อนถึงวันสำคัญ เพื่อให้วางแผนสั่งสินค้าล่วงหน้าได้แม่นยำขึ้น</td>
+</tr>
+<tr>
+  <td class="num">5</td>
+  <td><b>สรุปข้อเสนอแนะเชิงธุรกิจและเผยแพร่ผลงาน</b></td>
+  <td>รวบรวมผลลัพธ์ทั้งหมดให้อยู่ในรูปข้อเสนอแนะที่นำไปปฏิบัติได้จริง พร้อมเผยแพร่ข้อมูล โค้ด และรายงานให้ผู้เกี่ยวข้องตรวจสอบและต่อยอดได้</td>
+</tr>
+</table>
+
+<div class="footer-note">
+รายงานนี้สรุปจาก notebook การวิเคราะห์ <code>01_sales_insights.ipynb</code> และ <code>02_forecast.ipynb</code>
+พร้อมผลลัพธ์และกราฟที่รันจริงจากโค้ดในโปรเจกต์ (<code>src/data.py</code>, <code>src/features.py</code>, <code>src/metrics.py</code>)
+</div>
+
+</body>
+</html>
